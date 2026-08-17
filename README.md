@@ -4,9 +4,9 @@
 [![Latest release](https://img.shields.io/github/v/release/EvilFreelancer/CodexBar-KDE)](https://github.com/EvilFreelancer/CodexBar-KDE/releases/latest)
 
 KDE Plasma 6 widget (plasmoid) that shows AI coding-provider limits from the
-[CodexBar](https://github.com/steipete/CodexBar) CLI as two-ring radial gauges
-(outer ring = session, inner ring = weekly, percent used), with reset
-countdowns, pace summaries, credits, and provider errors.
+[CodexBar](https://github.com/steipete/CodexBar) CLI as horizontal fuel gauges
+that fill according to the quota remaining, with reset countdowns, pace
+summaries, credits, and provider errors.
 
 Available on the [KDE Store](https://store.kde.org/p/2365355).
 
@@ -77,18 +77,14 @@ The widget shells out to `codexbar usage --format json --no-color` through the
 Plasma "executable" data engine on a timer, parses the JSON payloads in
 [parser.js](package/contents/code/parser.js), and renders:
 
-- **Compact (panel)**: a two-ring radial gauge per provider, styled after the
-  System Monitor sensor widget. Outer ring = session window, inner ring =
-  weekly window; both show percent **used** (the ring fills up as quota is
-  consumed). The center number is the session percent used (weekly when there
-  is no session lane); `!` marks a provider error. Ring colors are
-  theme-aware: blue session and orange weekly, adjusted for light and dark
-  color schemes.
-- **Full (popup/desktop)**: one card per provider with the full provider name,
-  the same radial gauge, and a legend with ring-colored dots per rate window
-  (Session/Weekly/Monthly plus named lanes such as Codex Spark or Code
-  review) — percent used, reset countdowns, pace summaries, account, plan,
-  credits, status incidents, and error messages.
+- **Compact (panel)**: one horizontal, fuel-gauge-style meter per provider.
+  Its fill shows the quota remaining for the session window, or the weekly
+  window when no session lane is available. No percentage is shown.
+- **Full (popup/desktop)**: one card per provider with a horizontal meter for
+  every rate window (Session/Weekly/Monthly plus named lanes such as Codex
+  Spark or Code review), reset countdowns, pace summaries, account, plan,
+  credits, status incidents, and error messages. Each meter fills according to
+  the quota remaining; no usage percentages are displayed.
 - **Cache + background refresh**: the last known numbers stay on screen while
   a refresh runs in the background and survive plasmashell restarts; the
   tooltip and popup header show when data was last updated. If a provider

@@ -24,8 +24,8 @@ PlasmoidItem {
     // Ticks every 30s so countdown and "ago" labels stay fresh.
     property double nowMs: Date.now()
 
-    // Ring palette, shared by compact and full representations. The weekly
-    // orange is darkened on light themes to keep contrast against the track.
+    // Meter colors for session and weekly rate windows. The weekly orange is
+    // darkened on light themes to keep contrast against the track.
     readonly property bool darkTheme: Kirigami.Theme.textColor.hslLightness > 0.5
     readonly property color sessionColor: root.darkTheme ? "#3daee9" : "#2980b9"
     readonly property color weeklyColor: root.darkTheme ? "#f67400" : "#c85400"
@@ -62,7 +62,7 @@ PlasmoidItem {
                 if (w.usageKnown === false) {
                     continue
                 }
-                parts.push(w.label + " " + w.usedPercent + "% used")
+                parts.push(w.label + " " + i18n("quota remaining"))
             }
             lines.push(m.name + ": " + (parts.length ? parts.join(", ") : i18n("no data")))
         }

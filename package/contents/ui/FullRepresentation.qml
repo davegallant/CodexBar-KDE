@@ -16,17 +16,6 @@ PlasmaExtras.Representation {
 
     collapseMarginsHint: true
 
-    function stageColor(usedPercent) {
-        var stage = Parser.usageStage(usedPercent)
-        if (stage === "crit") {
-            return Kirigami.Theme.negativeTextColor
-        }
-        if (stage === "warn") {
-            return Kirigami.Theme.neutralTextColor
-        }
-        return Kirigami.Theme.positiveTextColor
-    }
-
     function resetText(w) {
         var countdown = Parser.formatCountdown(w.resetsAt, root.nowMs)
         if (countdown === "now") {
@@ -116,7 +105,6 @@ PlasmaExtras.Representation {
             id: card
             required property var modelData
             readonly property var rings: Parser.gaugeRings(modelData)
-            readonly property int centerPercent: Parser.gaugeCenterPercent(modelData)
             readonly property var cost: root.showCost ? (root.costById[modelData.id] || null) : null
 
             width: providerList.width - providerList.leftMargin - providerList.rightMargin
@@ -138,27 +126,11 @@ PlasmaExtras.Representation {
                 color: Qt.alpha(Kirigami.Theme.textColor, 0.06)
             }
 
-            RowLayout {
+            ColumnLayout {
                 id: cardContent
                 anchors.fill: parent
                 anchors.margins: Kirigami.Units.largeSpacing
                 spacing: Kirigami.Units.largeSpacing
-
-                RadialGauge {
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 4.5
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 4.5
-                    Layout.alignment: Qt.AlignTop
-                    outerColor: root.sessionColor
-                    innerColor: root.weeklyColor
-                    outerPercent: card.rings.outerIdx >= 0
-                        ? card.modelData.windows[card.rings.outerIdx].usedPercent : -1
-                    innerPercent: card.rings.innerIdx >= 0
-                        ? card.modelData.windows[card.rings.innerIdx].usedPercent : -1
-                    centerText: card.modelData.error
-                        ? "!"
-                        : (card.centerPercent >= 0 ? card.centerPercent + "%" : "")
-                    centerTextScale: 0.2
-                }
 
                 ColumnLayout {
                     Layout.fillWidth: true
@@ -255,21 +227,21 @@ PlasmaExtras.Representation {
                                 Item { Layout.fillWidth: true }
 
                                 PlasmaComponents3.Label {
-                                    text: windowRow.modelData.usageKnown === false
-                                        ? i18n("usage n/a")
-                                        : i18n("%1% used", windowRow.modelData.usedPercent)
-                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                    color: windowRow.modelData.usageKnown === false
-                                        ? Kirigami.Theme.disabledTextColor
-                                        : full.stageColor(windowRow.modelData.usedPercent)
-                                }
-
-                                PlasmaComponents3.Label {
                                     text: "· " + full.resetText(windowRow.modelData)
                                     visible: full.resetText(windowRow.modelData).length > 0
                                     opacity: 0.6
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                                 }
+                            }
+
+                            HorizontalGauge {
+                                visible: windowRow.modelData.usageKnown !== false
+                                Layout.fillWidth: true
+                                Layout.leftMargin: Kirigami.Units.smallSpacing * 3
+                                Layout.rightMargin: Kirigami.Units.smallSpacing
+                                Layout.preferredHeight: Kirigami.Units.smallSpacing * 2
+                                remainingPercent: Parser.remainingPercent(windowRow.modelData.usedPercent)
+                                fillColor: card.ringColor(windowRow.index)
                             }
 
                             PlasmaComponents3.Label {

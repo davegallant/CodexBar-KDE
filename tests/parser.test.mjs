@@ -237,6 +237,14 @@ test("gaugeRings: no windows means no rings", () => {
     assert.equal(rings.innerIdx, -1);
 });
 
+test("remainingPercent: converts used quota into available quota", () => {
+    assert.equal(parser.remainingPercent(0), 100);
+    assert.equal(parser.remainingPercent(37), 63);
+    assert.equal(parser.remainingPercent(100), 0);
+    assert.equal(parser.remainingPercent(-5), 100);
+    assert.equal(parser.remainingPercent(105), 0);
+});
+
 test("gaugeCenterPercent: percent used of outer, falling back to inner", () => {
     const claude = parser.parseUsageJson(JSON.stringify([CLAUDE_PAYLOAD])).models[0];
     assert.equal(parser.gaugeCenterPercent(claude), 7); // session used

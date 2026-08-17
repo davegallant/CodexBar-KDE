@@ -318,6 +318,11 @@ function gaugeRings(model) {
     return { outerIdx: outerIdx, innerIdx: innerIdx };
 }
 
+// Convert the CLI's used quota into the amount still available.
+function remainingPercent(usedPercent) {
+    return 100 - Math.max(0, Math.min(100, usedPercent));
+}
+
 function gaugeCenterPercent(model) {
     var rings = gaugeRings(model);
     var idx = rings.outerIdx !== -1 ? rings.outerIdx : rings.innerIdx;
@@ -535,6 +540,7 @@ if (typeof module !== "undefined" && module.exports) {
         toggleSelection: toggleSelection,
         gaugeRings: gaugeRings,
         gaugeCenterPercent: gaugeCenterPercent,
+        remainingPercent: remainingPercent,
         sweepAngle: sweepAngle,
         applyUpdate: applyUpdate,
         formatAgo: formatAgo,

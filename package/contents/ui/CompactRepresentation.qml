@@ -5,19 +5,19 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import "../code/parser.js" as Parser
 
-// Panel view: one two-ring radial gauge per provider
-// (outer ring = session left, inner ring = weekly left).
+// Panel view: one horizontal fuel-gauge-style meter per provider.
 Item {
     id: compact
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
-    readonly property int gaugeSize: compact.vertical
-        ? Math.min(compact.width, Kirigami.Units.gridUnit * 2.4)
-        : Math.min(compact.height, Kirigami.Units.gridUnit * 2.4)
+    readonly property int meterWidth: Kirigami.Units.gridUnit * 5
+    readonly property int meterHeight: Kirigami.Units.smallSpacing * 2
     readonly property int count: Math.max(1, root.models.length)
+    readonly property int fallbackSize: Kirigami.Units.gridUnit * 2
+    readonly property int panelHeight: root.models.length === 0 ? compact.fallbackSize : compact.meterHeight
 
-    Layout.minimumWidth: compact.vertical ? compact.gaugeSize : compact.count * (compact.gaugeSize + gaugeGrid.spacing)
-    Layout.minimumHeight: compact.vertical ? compact.count * (compact.gaugeSize + gaugeGrid.spacing) : compact.gaugeSize
+    Layout.minimumWidth: compact.vertical ? compact.meterWidth : compact.count * (compact.meterWidth + gaugeGrid.spacing)
+    Layout.minimumHeight: compact.vertical ? compact.count * (compact.panelHeight + gaugeGrid.spacing) : compact.panelHeight
 
     Grid {
         id: gaugeGrid
@@ -28,32 +28,22 @@ Item {
         Kirigami.Icon {
             visible: root.models.length === 0
             source: Qt.resolvedUrl("../icons/codexbar.svg")
-            width: compact.gaugeSize
-            height: compact.gaugeSize
+            width: compact.fallbackSize
+            height: compact.fallbackSize
             opacity: root.loading ? 0.5 : 1
         }
 
         Repeater {
             model: root.models
 
-            delegate: RadialGauge {
-                id: meter
+            delegate: HorizontalGauge {
                 required property var modelData
-                readonly property var rings: Parser.gaugeRings(modelData)
-                readonly property int centerPercent: Parser.gaugeCenterPercent(modelData)
+                readonly property int usedPercent: Parser.gaugeCenterPercent(modelData)
 
-                width: compact.gaugeSize
-                height: compact.gaugeSize
-                outerColor: root.sessionColor
-                innerColor: root.weeklyColor
-                outerPercent: rings.outerIdx >= 0
-                    ? modelData.windows[rings.outerIdx].usedPercent : -1
-                innerPercent: rings.innerIdx >= 0
-                    ? modelData.windows[rings.innerIdx].usedPercent : -1
-                centerText: modelData.error
-                    ? "!"
-                    : (meter.centerPercent >= 0 ? String(meter.centerPercent) : "")
-                centerTextScale: 0.34
+                width: compact.meterWidth
+                height: compact.meterHeight
+                remainingPercent: usedPercent >= 0 ? Parser.remainingPercent(usedPercent) : -1
+                fillColor: root.sessionColor
             }
         }
     }
