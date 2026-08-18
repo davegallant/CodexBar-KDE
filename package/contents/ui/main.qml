@@ -24,11 +24,10 @@ PlasmoidItem {
     // Ticks every 30s so countdown and "ago" labels stay fresh.
     property double nowMs: Date.now()
 
-    // Meter colors for session and weekly rate windows. The weekly orange is
-    // darkened on light themes to keep contrast against the track.
+    // Use one blue accent for every rate window in the popup and panel.
     readonly property bool darkTheme: Kirigami.Theme.textColor.hslLightness > 0.5
     readonly property color sessionColor: root.darkTheme ? "#3daee9" : "#2980b9"
-    readonly property color weeklyColor: root.darkTheme ? "#f67400" : "#c85400"
+    readonly property color weeklyColor: root.sessionColor
 
     // Local token-cost stats keyed by provider id (Codex/Claude scans).
     property var costById: ({})

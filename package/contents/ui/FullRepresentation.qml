@@ -224,6 +224,13 @@ PlasmaExtras.Representation {
                                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                                 }
 
+                                PlasmaComponents3.Label {
+                                    visible: windowRow.modelData.usageKnown !== false
+                                    text: i18n("%1% left", Parser.remainingPercent(windowRow.modelData.usedPercent))
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                    font.bold: true
+                                }
+
                                 Item { Layout.fillWidth: true }
 
                                 PlasmaComponents3.Label {

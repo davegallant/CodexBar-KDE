@@ -51,8 +51,9 @@ and install it with `kpackagetool6 --type Plasma/Applet -i <file>.plasmoid`.
 ### From source
 
 ```bash
+./install.sh     # install/update this checkout and restart Plasma Shell
+# or use the individual package commands:
 make install     # kpackagetool6 --type Plasma/Applet -i package
-# or later:
 make upgrade     # push code changes to the installed copy
 ```
 

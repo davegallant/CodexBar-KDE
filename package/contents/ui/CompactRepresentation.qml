@@ -10,8 +10,9 @@ Item {
     id: compact
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
-    readonly property int meterWidth: Kirigami.Units.gridUnit * 5
-    readonly property int meterHeight: Kirigami.Units.smallSpacing * 2
+    // Keep the panel footprint close to a tray icon while retaining a visible meter.
+    readonly property int meterWidth: Kirigami.Units.gridUnit * 2
+    readonly property int meterHeight: Kirigami.Units.smallSpacing
     readonly property int count: Math.max(1, root.models.length)
     readonly property int fallbackSize: Kirigami.Units.gridUnit * 2
     readonly property int panelHeight: root.models.length === 0 ? compact.fallbackSize : compact.meterHeight
