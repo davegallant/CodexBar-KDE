@@ -24,23 +24,20 @@ learned the hard way; follow them instead of rediscovering the failures.
 
 ## Testing on this machine
 
-- No `plasmoidviewer`, no `qml6` runtime, no passwordless sudo.
-- Never test on the user's live desktop; run `Xvfb :77` + `plasmawindowed`.
-  Display `:99` is OCCUPIED by another agent's session — do not touch it.
-  Yakuake overlays most of `:0` and eats synthetic clicks.
-- Screenshots: python-xlib `win.get_image()` + PIL (works during grabs).
-  plasmawindowed restores geometry from `~/.config/plasmawindowedrc` and may
-  place the window off-screen on a small Xvfb; move it with `win.configure()`.
-- plasmawindowed shows no context menu on right-click; to open the config
-  dialog headlessly, temporarily patch the INSTALLED copy with a Timer that
-  calls `Plasmoid.internalAction("configure").trigger()`, then reinstall
-  clean (`kpackagetool6 -t Plasma/Applet -u package`).
+- Visual checks only when the user asks for them — `parser.js` logic is
+  covered by `node --test` and QML tweaks are verifiable by inspection.
+- If needed: `Xvfb` on display `:77` + `plasmawindowed org.rpa.codexbar`
+  (applet arg required). `:99` is OCCUPIED by another agent's session — do
+  not touch it. `:0` is the live desktop; Yakuake overlays eat synthetic
+  clicks.
+- The `bash` tool runs in a sandbox with a private `/tmp` that reaps
+  background processes when the call ends — start Xvfb/plasmawindowed in a
+  `tmux` window. Stale `/tmp/.X77-lock` may need removing before Xvfb starts.
+- Screenshots: `~/.local/bin/uv run --with python-xlib --with pillow python`
+  (root window `get_image()` + PIL).
 - ALWAYS use `tests/mock-codexbar.sh` as `codexbarPath` for screenshots: it
   serves example.com accounts. The user's real e-mail must never appear in
-  published images. `MOCK_CODEXBAR_DELAY=N` simulates a slow CLI to verify
-  the no-blank cache behaviour; `mock-codexbar.sh cost` serves cost payloads.
-- `pkill -f` patterns must not match your own shell command line (use the
-  `[x]` bracket trick AND run pkill in a separate command), else exit 144.
+  published images.
 
 ## Release flow
 

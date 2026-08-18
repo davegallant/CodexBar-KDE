@@ -11,7 +11,7 @@ Item {
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     // Keep the panel footprint close to a tray icon while retaining a visible meter.
-    readonly property int meterWidth: Kirigami.Units.gridUnit * 2
+    readonly property int meterWidth: Kirigami.Units.gridUnit
     readonly property int meterHeight: Kirigami.Units.smallSpacing
     readonly property int count: Math.max(1, root.models.length)
     readonly property int fallbackSize: Kirigami.Units.gridUnit * 2
