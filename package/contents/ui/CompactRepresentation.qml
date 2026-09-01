@@ -5,14 +5,16 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.kirigami as Kirigami
 import "../code/parser.js" as Parser
 
-// Panel view: one horizontal fuel-gauge-style meter per provider.
+// Panel view: stacked session and weekly fuel-gauge-style meters per provider.
 Item {
     id: compact
 
     readonly property bool vertical: Plasmoid.formFactor === PlasmaCore.Types.Vertical
     // Keep the panel footprint close to a tray icon while retaining a visible meter.
     readonly property int meterWidth: Kirigami.Units.gridUnit
-    readonly property int meterHeight: Kirigami.Units.smallSpacing
+    readonly property int barHeight: Kirigami.Units.smallSpacing
+    readonly property int barSpacing: Kirigami.Units.smallSpacing
+    readonly property int meterHeight: compact.barHeight * 2 + compact.barSpacing
     readonly property int count: Math.max(1, root.models.length)
     readonly property int fallbackSize: Kirigami.Units.gridUnit * 2
     readonly property int panelHeight: root.models.length === 0 ? compact.fallbackSize : compact.meterHeight
@@ -37,14 +39,31 @@ Item {
         Repeater {
             model: root.models
 
-            delegate: HorizontalGauge {
+            delegate: Item {
                 required property var modelData
-                readonly property int usedPercent: Parser.gaugeCenterPercent(modelData)
+                readonly property var percents: Parser.gaugePercents(modelData)
 
                 width: compact.meterWidth
                 height: compact.meterHeight
-                remainingPercent: usedPercent >= 0 ? Parser.remainingPercent(usedPercent) : -1
-                fillColor: root.sessionColor
+
+                Column {
+                    anchors.fill: parent
+                    spacing: compact.barSpacing
+
+                    HorizontalGauge {
+                        width: parent.width
+                        height: compact.barHeight
+                        remainingPercent: percents.session >= 0 ? Parser.remainingPercent(percents.session) : -1
+                        fillColor: root.sessionColor
+                    }
+
+                    HorizontalGauge {
+                        width: parent.width
+                        height: compact.barHeight
+                        remainingPercent: percents.weekly >= 0 ? Parser.remainingPercent(percents.weekly) : -1
+                        fillColor: root.weeklyColor
+                    }
+                }
             }
         }
     }

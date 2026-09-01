@@ -211,6 +211,22 @@ test("gaugeRings: weekly-only provider lights only the inner ring", () => {
     assert.equal(rings.innerIdx, 0);
 });
 
+test("gaugePercents: exposes session and weekly usage separately", () => {
+    const result = parser.parseUsageJson(JSON.stringify([CLAUDE_PAYLOAD]));
+    assert.deepEqual(parser.gaugePercents(result.models[0]), {
+        session: 7,
+        weekly: 20,
+    });
+});
+
+test("gaugePercents: preserves a missing session lane", () => {
+    const result = parser.parseUsageJson(JSON.stringify([CODEX_PAYLOAD]));
+    assert.deepEqual(parser.gaugePercents(result.models[0]), {
+        session: -1,
+        weekly: 37,
+    });
+});
+
 test("gaugeRings: daily maps to outer, monthly to inner", () => {
     const payload = JSON.parse(JSON.stringify(CLAUDE_PAYLOAD));
     payload.usage.primary.windowMinutes = 1440;

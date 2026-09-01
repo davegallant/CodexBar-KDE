@@ -78,9 +78,10 @@ The widget shells out to `codexbar usage --format json --no-color` through the
 Plasma "executable" data engine on a timer, parses the JSON payloads in
 [parser.js](package/contents/code/parser.js), and renders:
 
-- **Compact (panel)**: one horizontal, fuel-gauge-style meter per provider.
-  Its fill shows the quota remaining for the session window, or the weekly
-  window when no session lane is available. No percentage is shown.
+- **Compact (panel)**: two stacked, fuel-gauge-style meters per provider.
+  The top bar shows session quota remaining and the bottom bar shows weekly
+  quota remaining. An unavailable lane keeps an empty track. No percentage is
+  shown.
 - **Full (popup/desktop)**: one card per provider with a horizontal meter for
   every rate window (Session/Weekly/Monthly plus named lanes such as Codex
   Spark or Code review), reset countdowns, pace summaries, account, plan,

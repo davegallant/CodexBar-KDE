@@ -332,6 +332,14 @@ function gaugeCenterPercent(model) {
     return Math.max(0, Math.min(100, model.windows[idx].usedPercent));
 }
 
+function gaugePercents(model) {
+    var rings = gaugeRings(model);
+    return {
+        session: rings.outerIdx !== -1 ? Math.max(0, Math.min(100, model.windows[rings.outerIdx].usedPercent)) : -1,
+        weekly: rings.innerIdx !== -1 ? Math.max(0, Math.min(100, model.windows[rings.innerIdx].usedPercent)) : -1,
+    };
+}
+
 function sweepAngle(percent) {
     var clamped = Math.max(0, Math.min(100, percent));
     return clamped * 3.6;
@@ -540,6 +548,7 @@ if (typeof module !== "undefined" && module.exports) {
         toggleSelection: toggleSelection,
         gaugeRings: gaugeRings,
         gaugeCenterPercent: gaugeCenterPercent,
+        gaugePercents: gaugePercents,
         remainingPercent: remainingPercent,
         sweepAngle: sweepAngle,
         applyUpdate: applyUpdate,
