@@ -93,6 +93,16 @@ PlasmaExtras.Representation {
         leftMargin: Kirigami.Units.smallSpacing
         rightMargin: Kirigami.Units.smallSpacing
 
+        footer: PlasmaComponents3.Label {
+            width: providerList.width
+            topPadding: Kirigami.Units.largeSpacing
+            bottomPadding: Kirigami.Units.smallSpacing
+            text: "<a href=\"https://status.openai.com/\">" + i18n("ChatGPT status") + "</a>"
+            textFormat: Text.RichText
+            horizontalAlignment: Text.AlignHCenter
+            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
+        }
+
         PlasmaExtras.PlaceholderMessage {
             anchors.centerIn: parent
             width: parent.width - Kirigami.Units.gridUnit * 2
