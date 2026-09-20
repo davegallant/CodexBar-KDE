@@ -481,6 +481,53 @@ function buildCostCommand(codexbarPath, proxyUrl) {
     return commandPrefix(proxyUrl) + " " + codexbarPath + " cost --format json --no-color";
 }
 
+function buildOpenAIStatusCommand(proxyUrl) {
+    return commandPrefix(proxyUrl) + " curl --fail --silent --show-error --max-time 10"
+        + " https://status.openai.com/api/v2/summary.json";
+}
+
+function parseOpenAIStatusJson(text) {
+    var parsed;
+    try {
+        parsed = JSON.parse(text);
+    } catch (e) {
+        return { ok: false, error: "Invalid OpenAI status JSON: " + e.message, status: null };
+    }
+    if (!parsed.status || typeof parsed.status.indicator !== "string"
+            || typeof parsed.status.description !== "string" || !Array.isArray(parsed.components)) {
+        return { ok: false, error: "Unexpected OpenAI status payload", status: null };
+    }
+    var components = [];
+    for (var i = 0; i < parsed.components.length; i++) {
+        var component = parsed.components[i];
+        if (component && typeof component.name === "string" && typeof component.status === "string") {
+            components.push({ name: component.name, status: component.status });
+        }
+    }
+    return { ok: true, error: "", status: {
+        indicator: parsed.status.indicator,
+        description: parsed.status.description,
+        components: components,
+    }};
+}
+
+function groupOpenAIStatus(components) {
+    var groups = ["APIs", "ChatGPT", "Codex", "FedRAMP", "Ads Platform"];
+    var api = { "Chat Completions": true, Responses: true, "Fine-tuning": true, Embeddings: true,
+        Images: true, Batch: true, Audio: true, Moderations: true, Realtime: true, Files: true, Sora: true };
+    var codex = { "Codex Web": true, "Codex API": true, CLI: true, "VS Code extension": true };
+    var ads = { "Ads Manager": true, "Ads API": true };
+    var rank = { operational: 0, under_maintenance: 1, degraded_performance: 2, partial_outage: 3, major_outage: 4 };
+    var values = { "APIs": "operational", ChatGPT: "operational", Codex: "operational", FedRAMP: "operational", "Ads Platform": "operational" };
+    for (var i = 0; i < (components || []).length; i++) {
+        var item = components[i];
+        var group = api[item.name] ? "APIs" : codex[item.name] ? "Codex" : ads[item.name] ? "Ads Platform"
+            : item.name === "FedRAMP" ? "FedRAMP" : "ChatGPT";
+        if ((rank[item.status] || 0) > (rank[values[group]] || 0)) values[group] = item.status;
+    }
+    return groups.map(function(name) { return { name: name, status: values[name] }; });
+}
+
 // Merge freshly parsed provider models into the cached map. Successful
 // fetches replace the cache entry; errors keep the last good data and only
 // mark it stale, so panel gauges never blank out during background refreshes.
@@ -580,5 +627,8 @@ if (typeof module !== "undefined" && module.exports) {
         chartSeries: chartSeries,
         buildCommands: buildCommands,
         buildCostCommand: buildCostCommand,
+        buildOpenAIStatusCommand: buildOpenAIStatusCommand,
+        parseOpenAIStatusJson: parseOpenAIStatusJson,
+        groupOpenAIStatus: groupOpenAIStatus,
     };
 }

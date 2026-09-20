@@ -31,6 +31,8 @@ PlasmoidItem {
 
     // Local token-cost stats keyed by provider id (Codex/Claude scans).
     property var costById: ({})
+    property var openAIStatus: null
+    property string openAIStatusError: ""
 
     readonly property string codexbarPath: Plasmoid.configuration.codexbarPath || "codexbar"
     readonly property bool showPace: Plasmoid.configuration.showPace
@@ -41,6 +43,7 @@ PlasmoidItem {
 
     readonly property var commands: Parser.buildCommands(root.codexbarPath, root.selectedProviders, root.proxyUrl)
     readonly property string costCommand: Parser.buildCostCommand(root.codexbarPath, root.proxyUrl)
+    readonly property string openAIStatusCommand: Parser.buildOpenAIStatusCommand(root.proxyUrl)
 
     switchWidth: Kirigami.Units.gridUnit * 15
     switchHeight: Kirigami.Units.gridUnit * 12
@@ -86,7 +89,7 @@ PlasmoidItem {
             return
         }
         root.loading = true
-        root.pendingCount = root.commands.length + (root.showCost ? 1 : 0)
+        root.pendingCount = root.commands.length + (root.showCost ? 1 : 0) + 1
         // Old models stay on screen; the executable engine reruns each
         // command and results merge in as they arrive.
         executable.connectedSources = []
@@ -96,6 +99,7 @@ PlasmoidItem {
         if (root.showCost) {
             executable.connectSource(root.costCommand)
         }
+        executable.connectSource(root.openAIStatusCommand)
     }
 
     function handleCostResult(stdout) {
@@ -105,6 +109,18 @@ PlasmoidItem {
             root.persistCache()
         }
         // A failed cost scan keeps the previous numbers; usage is unaffected.
+    }
+
+    function handleOpenAIStatusResult(stdout, stderr) {
+        var parsed = Parser.parseOpenAIStatusJson(stdout)
+        if (parsed.ok) {
+            root.openAIStatus = parsed.status
+            root.openAIStatusError = ""
+            root.persistCache()
+            return
+        }
+        root.openAIStatusError = stderr && stderr.trim().length > 0
+            ? stderr.trim().split("\n").pop() : parsed.error
     }
 
     function handleResult(stdout, stderr, exitCode) {
@@ -157,6 +173,7 @@ PlasmoidItem {
             byId: root.modelsById,
             order: root.modelOrder,
             costById: root.costById,
+            openAIStatus: root.openAIStatus,
             updatedAtMs: root.lastUpdatedMs,
         })
     }
@@ -171,6 +188,7 @@ PlasmoidItem {
             root.modelsById = cache.byId || {}
             root.modelOrder = cache.order || []
             root.costById = cache.costById || {}
+            root.openAIStatus = cache.openAIStatus || null
             root.lastUpdatedMs = cache.updatedAtMs !== undefined ? cache.updatedAtMs : -1
             root.rebuildModels()
         } catch (e) {
@@ -188,7 +206,9 @@ PlasmoidItem {
             if (root.pendingCount === 0) {
                 root.loading = false
             }
-            if (source === root.costCommand) {
+            if (source === root.openAIStatusCommand) {
+                root.handleOpenAIStatusResult(data["stdout"] || "", data["stderr"] || "")
+            } else if (source === root.costCommand) {
                 root.handleCostResult(data["stdout"] || "")
             } else {
                 root.handleResult(

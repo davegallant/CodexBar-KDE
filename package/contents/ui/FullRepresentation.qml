@@ -93,14 +93,70 @@ PlasmaExtras.Representation {
         leftMargin: Kirigami.Units.smallSpacing
         rightMargin: Kirigami.Units.smallSpacing
 
-        footer: PlasmaComponents3.Label {
+        footer: ColumnLayout {
+            id: statusFooter
             width: providerList.width
-            topPadding: Kirigami.Units.largeSpacing
-            bottomPadding: Kirigami.Units.smallSpacing
-            text: "<a href=\"https://status.openai.com/\">" + i18n("ChatGPT status") + "</a>"
-            textFormat: Text.RichText
-            horizontalAlignment: Text.AlignHCenter
-            onLinkActivated: function(link) { Qt.openUrlExternally(link) }
+            spacing: Kirigami.Units.smallSpacing
+
+            function statusColor(status) {
+                if (status === "operational") return Kirigami.Theme.positiveTextColor
+                if (status === "major_outage") return Kirigami.Theme.negativeTextColor
+                return Kirigami.Theme.neutralTextColor
+            }
+
+            PlasmaComponents3.Label {
+                Layout.topMargin: Kirigami.Units.largeSpacing
+                visible: root.openAIStatus !== null
+                text: root.openAIStatus ? i18n("OpenAI status: %1", root.openAIStatus.description) : ""
+                font.bold: true
+            }
+
+            GridLayout {
+                Layout.alignment: Qt.AlignHCenter
+                columns: 2
+                columnSpacing: Kirigami.Units.largeSpacing
+                rowSpacing: Kirigami.Units.smallSpacing
+
+                Repeater {
+                    model: root.openAIStatus
+                        ? Parser.groupOpenAIStatus(root.openAIStatus.components) : []
+                    delegate: RowLayout {
+                        required property var modelData
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        spacing: Kirigami.Units.smallSpacing
+
+                        Rectangle {
+                            width: Kirigami.Units.smallSpacing * 2
+                            height: width
+                            radius: width / 2
+                            color: statusFooter.statusColor(modelData.status)
+                        }
+
+                        PlasmaComponents3.Label {
+                            Layout.fillWidth: true
+                            text: modelData.name
+                            elide: Text.ElideRight
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        }
+                    }
+                }
+            }
+
+            PlasmaComponents3.Label {
+                visible: root.openAIStatus === null && root.openAIStatusError.length > 0
+                Layout.fillWidth: true
+                text: i18n("OpenAI status is unavailable: %1", root.openAIStatusError)
+                color: Kirigami.Theme.neutralTextColor
+                wrapMode: Text.WordWrap
+            }
+
+            PlasmaComponents3.Label {
+                Layout.fillWidth: true
+                text: "<a href=\"https://status.openai.com/\">" + i18n("Status page") + "</a>"
+                textFormat: Text.RichText
+                horizontalAlignment: Text.AlignHCenter
+                onLinkActivated: function(link) { Qt.openUrlExternally(link) }
+            }
         }
 
         PlasmaExtras.PlaceholderMessage {

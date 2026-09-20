@@ -517,3 +517,50 @@ test("buildCostCommand: cost subcommand with proxy", () => {
     const plain = parser.buildCostCommand("codexbar", "");
     assert.ok(plain.indexOf("ALL_PROXY") === -1);
 });
+
+test("parseOpenAIStatusJson: preserves ordered components", () => {
+    const summary = {
+        status: { indicator: "minor", description: "Minor System Outage" },
+        components: [
+            { name: "ChatGPT", status: "operational" },
+            { name: "Codex", status: "partial_outage" },
+            { name: "New service", status: "new_state" },
+        ],
+    };
+    const result = parser.parseOpenAIStatusJson(JSON.stringify(summary));
+    assert.equal(result.ok, true);
+    assert.deepEqual(result.status, {
+        indicator: "minor",
+        description: "Minor System Outage",
+        components: summary.components,
+    });
+});
+
+test("parseOpenAIStatusJson: rejects malformed and incomplete summaries", () => {
+    assert.equal(parser.parseOpenAIStatusJson("not json").ok, false);
+    assert.equal(parser.parseOpenAIStatusJson('{"status": {}}').ok, false);
+});
+
+test("buildOpenAIStatusCommand: uses endpoint and proxy", () => {
+    const command = parser.buildOpenAIStatusCommand("socks5://127.0.0.1:1080");
+    assert.match(command, /curl --fail --silent --show-error --max-time 10/);
+    assert.match(command, /status\.openai\.com\/api\/v2\/summary\.json/);
+    assert.match(command, /ALL_PROXY='socks5:\/\/127\.0\.0\.1:1080'/);
+});
+
+test("groupOpenAIStatus: reports the worst status for each public category", () => {
+    const groups = parser.groupOpenAIStatus([
+        { name: "Responses", status: "operational" },
+        { name: "ChatGPT Atlas", status: "partial_outage" },
+        { name: "CLI", status: "major_outage" },
+        { name: "FedRAMP", status: "operational" },
+        { name: "Ads API", status: "under_maintenance" },
+    ]);
+    assert.deepEqual(groups, [
+        { name: "APIs", status: "operational" },
+        { name: "ChatGPT", status: "partial_outage" },
+        { name: "Codex", status: "major_outage" },
+        { name: "FedRAMP", status: "operational" },
+        { name: "Ads Platform", status: "under_maintenance" },
+    ]);
+});
