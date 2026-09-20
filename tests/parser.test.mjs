@@ -100,6 +100,46 @@ test("parseUsageJson: credits surface on the model", () => {
     assert.equal(result.models[0].credits, 12.5);
 });
 
+test("parseUsageJson: exposes available reset credits and their expirations", () => {
+    const payload = JSON.parse(JSON.stringify(CODEX_PAYLOAD));
+    payload.usage.codexResetCredits = {
+        availableCount: 2,
+        credits: [
+            {
+                title: "Full reset (Weekly + 5 hr)",
+                status: "available",
+                expires_at: "2026-10-04T00:57:42Z",
+            },
+            {
+                title: "Full reset (Weekly + 5 hr)",
+                status: "available",
+                expires_at: "2026-10-04T22:31:20Z",
+            },
+            {
+                title: "Spent reset",
+                status: "used",
+                expires_at: "2026-10-05T00:00:00Z",
+            },
+        ],
+    };
+
+    const model = parser.parseUsageJson(JSON.stringify([payload])).models[0];
+    assert.equal(model.resetCreditsAvailable, 2);
+    assert.deepEqual(model.resetCredits, [
+        { title: "Full reset (Weekly + 5 hr)", expiresAt: "2026-10-04T00:57:42Z" },
+        { title: "Full reset (Weekly + 5 hr)", expiresAt: "2026-10-04T22:31:20Z" },
+    ]);
+});
+
+test("parseUsageJson: preserves a zero available reset-credit count", () => {
+    const payload = JSON.parse(JSON.stringify(CODEX_PAYLOAD));
+    payload.usage.codexResetCredits = { availableCount: 0, credits: [] };
+
+    const model = parser.parseUsageJson(JSON.stringify([payload])).models[0];
+    assert.equal(model.resetCreditsAvailable, 0);
+    assert.deepEqual(model.resetCredits, []);
+});
+
 test("parseUsageJson: synthetic placeholder windows are dropped", () => {
     const payload = JSON.parse(JSON.stringify(CLAUDE_PAYLOAD));
     payload.usage.primary.isSyntheticPlaceholder = true;

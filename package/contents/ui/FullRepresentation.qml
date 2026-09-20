@@ -27,6 +27,14 @@ PlasmaExtras.Representation {
         return w.resetDescription
     }
 
+    function resetCreditExpiryText(credit) {
+        var expiresAt = Date.parse(credit.expiresAt)
+        if (isNaN(expiresAt)) {
+            return ""
+        }
+        return new Date(expiresAt).toLocaleString(Qt.locale(), "ddd MMM d, yyyy h:mm AP")
+    }
+
     function costLine(cost, kind) {
         var money = Parser.formatMoney(kind === "today" ? cost.todayCostUSD : cost.month30CostUSD)
         var tokens = Parser.humanTokens(kind === "today" ? cost.todayTokens : cost.month30Tokens)
@@ -270,6 +278,32 @@ PlasmaExtras.Representation {
                             : "")
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
                         opacity: 0.7
+                    }
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        visible: card.modelData.resetCreditsAvailable !== null
+                        spacing: 0
+
+                        PlasmaComponents3.Label {
+                            text: i18n("Resets available: %1", card.modelData.resetCreditsAvailable)
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            opacity: 0.7
+                        }
+
+                        Repeater {
+                            model: card.modelData.resetCredits
+
+                            delegate: PlasmaComponents3.Label {
+                                required property var modelData
+                                Layout.fillWidth: true
+                                Layout.leftMargin: Kirigami.Units.smallSpacing * 3
+                                text: i18n("Expires %1", full.resetCreditExpiryText(modelData))
+                                visible: full.resetCreditExpiryText(modelData).length > 0
+                                opacity: 0.6
+                                font.pointSize: Kirigami.Theme.smallFont.pointSize
+                            }
+                        }
                     }
 
                     // Local token cost scan (Codex/Claude): spend and tokens.

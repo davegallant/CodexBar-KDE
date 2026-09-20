@@ -243,6 +243,25 @@ function payloadToModel(payload) {
     if (payload.credits && typeof payload.credits.remaining === "number") {
         credits = payload.credits.remaining;
     }
+    var resetCreditsAvailable = null;
+    var resetCredits = [];
+    if (usage && usage.codexResetCredits) {
+        var rawResetCredits = usage.codexResetCredits;
+        if (typeof rawResetCredits.availableCount === "number") {
+            resetCreditsAvailable = rawResetCredits.availableCount;
+        }
+        var rawCreditList = rawResetCredits.credits || [];
+        for (var k = 0; k < rawCreditList.length; k++) {
+            var resetCredit = rawCreditList[k];
+            if (!resetCredit || resetCredit.status !== "available" || !resetCredit.expires_at) {
+                continue;
+            }
+            resetCredits.push({
+                title: resetCredit.title || "",
+                expiresAt: resetCredit.expires_at,
+            });
+        }
+    }
     var status = null;
     if (payload.status && payload.status.indicator && payload.status.indicator !== "none") {
         status = {
@@ -258,6 +277,8 @@ function payloadToModel(payload) {
         account: account,
         plan: plan,
         credits: credits,
+        resetCreditsAvailable: resetCreditsAvailable,
+        resetCredits: resetCredits,
         status: status,
         error: payload.error ? String(payload.error.message || "error") : null,
         windows: windows,

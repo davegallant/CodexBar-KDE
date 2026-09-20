@@ -62,6 +62,8 @@ iso() { date -u -d "$1" +%Y-%m-%dT%H:%M:%SZ; }
 session_reset=$(iso "+2 hours 41 minutes")
 weekly_reset_claude=$(iso "+3 days 22 hours")
 weekly_reset_codex=$(iso "+6 days 23 hours")
+reset_credit_expires_first=$(iso "+14 days")
+reset_credit_expires_second=$(iso "+20 days")
 now=$(iso "now")
 
 codex_payload() {
@@ -79,6 +81,21 @@ cat <<EOF
       "resetsAt": "$weekly_reset_codex"
     },
     "tertiary": null,
+    "codexResetCredits": {
+      "availableCount": 2,
+      "credits": [
+        {
+          "title": "Full reset (Weekly + 5 hr)",
+          "status": "available",
+          "expires_at": "$reset_credit_expires_first"
+        },
+        {
+          "title": "Full reset (Weekly + 5 hr)",
+          "status": "available",
+          "expires_at": "$reset_credit_expires_second"
+        }
+      ]
+    },
     "extraRateWindows": [
       {
         "id": "codex-spark",
